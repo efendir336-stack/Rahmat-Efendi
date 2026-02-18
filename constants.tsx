@@ -13,21 +13,21 @@ export const EXAMPLE_DATA = [
     id: "1",
     no: 1,
     name: "SYAMBIAH",
-    dates: ["19/02/26", "06/03/26"],
+    dates: ["19/02/2026", "06/03/2026"],
     type: "Makanan / Uang"
   },
   {
     id: "2",
     no: 2,
     name: "SINTA / NENE AMMAS",
-    dates: ["19/02/26", "06/03/26"],
+    dates: ["19/02/2026", "06/03/2026"],
     type: "Makanan / Uang"
   },
   {
     id: "3",
     no: 3,
     name: "ANGGIN",
-    dates: ["19/02/26", "06/03/26"],
+    dates: ["19/02/2026", "06/03/2026"],
     type: "Makanan / Uang"
   }
 ];

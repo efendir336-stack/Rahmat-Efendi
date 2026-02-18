@@ -89,7 +89,7 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header }) => {
                         <div className="flex flex-wrap justify-center gap-2 mb-2">
                           {row.dates.map((date, dIdx) => (
                             <span key={dIdx} className="bg-slate-100 px-2 py-0.5 rounded border border-slate-300 font-mono font-bold text-[10px]">
-                              {date || "__/__/__"}
+                              {date || "__/__/____"}
                             </span>
                           ))}
                         </div>

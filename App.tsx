@@ -70,7 +70,7 @@ const App: React.FC = () => {
 
   const downloadTemplate = () => {
     const worksheet = XLSX.utils.json_to_sheet([
-      { "No": 1, "Nama": "Contoh Nama", "Tanggal Pertama": "19/02/26", "Tanggal Kedua": "06/03/26", "Jenis Sumbangan": "Makanan / Uang" }
+      { "No": 1, "Nama": "Contoh Nama", "Tanggal Pertama": "19/02/2026", "Tanggal Kedua": "06/03/2026", "Jenis Sumbangan": "Makanan / Uang" }
     ]);
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
@@ -344,7 +344,7 @@ const App: React.FC = () => {
                                    key={idx}
                                    value={date}
                                    onChange={(e) => updateDate(row.id, idx, e.target.value)}
-                                   placeholder="DD/MM/YY"
+                                   placeholder="DD/MM/YYYY"
                                    className={`px-3 py-1 rounded-lg border-2 text-sm font-mono ${isValidDate(date) ? 'border-slate-100 bg-slate-50 focus:border-emerald-400' : 'border-rose-200 bg-rose-50 text-rose-600'}`}
                                  />
                                ))}
