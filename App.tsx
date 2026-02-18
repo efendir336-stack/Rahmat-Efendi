@@ -4,7 +4,7 @@ import {
   Download, Upload, Printer, Settings, Plus, Trash2, 
   FileText, Layout, CheckCircle, AlertCircle, RefreshCcw, 
   Search, FileSpreadsheet, Info, ChevronRight, Save, Edit3,
-  Maximize, Minimize, Zap, X, Sliders
+  Maximize, Minimize, Zap, X, Sliders, FileType, FileDown
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { DonationRecord, HeaderConfig } from './types';
@@ -102,13 +102,49 @@ const App: React.FC = () => {
     return val.toString().trim();
   };
 
-  const downloadTemplate = () => {
-    const worksheet = XLSX.utils.json_to_sheet([
-      { "No": 1, "Nama": "Contoh Nama", "Tanggal Pertama": "19/02/2026", "Tanggal Kedua": "06/03/2026", "Jenis Sumbangan": "Makanan / Uang" }
-    ]);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Template");
-    XLSX.writeFile(workbook, "Template_Jadwal_Tajil.xlsx");
+  const deleteAllData = () => {
+    if (confirm("PERINGATAN: Anda yakin ingin menghapus SELURUH data donatur? Tindakan ini tidak dapat dibatalkan.")) {
+      setData([]);
+    }
+  };
+
+  const exportToWord = () => {
+    let html = `
+      <html xmlns:o='urn:schemas-microsoft-com:office:office' xmlns:w='urn:schemas-microsoft-com:office:word' xmlns='http://www.w3.org/TR/REC-html40'>
+      <head><meta charset='utf-8'><title>Data Donatur</title></head>
+      <body style="font-family: Arial, sans-serif;">
+        <h2 style="text-align:center;">${headerConfig.mosqueName}</h2>
+        <h3 style="text-align:center;">JADWAL TA'JIL ${headerConfig.hijriYear}</h3>
+        <table border="1" cellspacing="0" cellpadding="5" style="width:100%; border-collapse:collapse;">
+          <tr style="background-color:#f2f2f2;">
+            <th>No</th>
+            <th>Nama Donatur</th>
+            <th>Tanggal Penyaluran</th>
+            <th>Jenis Sumbangan</th>
+          </tr>
+          ${data.map(item => `
+            <tr>
+              <td align="center">${item.no}</td>
+              <td>${item.name}</td>
+              <td>${item.dates.join(", ")}</td>
+              <td>${item.type}</td>
+            </tr>
+          `).join('')}
+        </table>
+      </body>
+      </html>
+    `;
+
+    const blob = new Blob(['\ufeff', html], {
+      type: 'application/msword'
+    });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `Data_Tajil_${headerConfig.mosqueName.replace(/\s+/g, '_')}.doc`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   const exportToExcel = () => {
@@ -370,25 +406,51 @@ const App: React.FC = () => {
             {/* Data Table */}
             <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
                <div className="p-6 border-b bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
-                  <div className="relative w-full md:w-80">
+                  <div className="relative w-full md:w-64">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
                       placeholder="Cari donatur..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium"
+                      className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium text-sm"
                     />
                   </div>
-                  <div className="flex flex-wrap gap-3 w-full md:w-auto">
-                    <button onClick={addNewRow} className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg transition-all active:scale-95">
-                      <Plus size={20} />
+                  
+                  <div className="flex flex-wrap gap-2 w-full md:w-auto">
+                    {/* Action Group: Manage */}
+                    <button onClick={addNewRow} className="flex-grow md:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 bg-emerald-600 text-white rounded-xl font-black text-xs hover:bg-emerald-700 transition-all shadow-md active:scale-95">
+                      <Plus size={16} />
                       <span>TAMBAH</span>
                     </button>
-                    <label className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-5 py-3 bg-white text-slate-900 rounded-xl cursor-pointer hover:bg-slate-50 transition-all font-bold shadow-sm border border-slate-200">
-                      <Upload size={18} />
+                    
+                    <button onClick={deleteAllData} className="flex-grow md:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 bg-rose-50 text-rose-600 border border-rose-100 rounded-xl font-black text-xs hover:bg-rose-100 transition-all active:scale-95">
+                      <Trash2 size={16} />
+                      <span>HAPUS SEMUA</span>
+                    </button>
+
+                    <div className="w-px h-8 bg-slate-200 hidden md:block mx-1"></div>
+
+                    {/* Action Group: Import/Export */}
+                    <label className="flex-grow md:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 bg-white text-slate-700 border border-slate-200 rounded-xl font-black text-xs hover:bg-slate-50 cursor-pointer transition-all active:scale-95">
+                      <Upload size={16} />
                       <span>IMPORT EXCEL</span>
                       <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} />
                     </label>
+
+                    <button onClick={() => setShowPrint(true)} className="flex-grow md:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 bg-blue-50 text-blue-600 border border-blue-100 rounded-xl font-black text-xs hover:bg-blue-100 transition-all active:scale-95">
+                      <FileDown size={16} />
+                      <span>EKSPOR PDF</span>
+                    </button>
+
+                    <button onClick={exportToWord} className="flex-grow md:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 bg-indigo-50 text-indigo-600 border border-indigo-100 rounded-xl font-black text-xs hover:bg-indigo-100 transition-all active:scale-95">
+                      <FileType size={16} />
+                      <span>EXPORT WORD</span>
+                    </button>
+                    
+                    <button onClick={exportToExcel} className="flex-grow md:flex-none flex items-center justify-center space-x-2 px-4 py-2.5 bg-emerald-50 text-emerald-600 border border-emerald-100 rounded-xl font-black text-xs hover:bg-emerald-100 transition-all active:scale-95">
+                      <Download size={16} />
+                      <span>EXCEL</span>
+                    </button>
                   </div>
                </div>
                
@@ -403,7 +465,7 @@ const App: React.FC = () => {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
-                      {filteredData.map((row) => (
+                      {filteredData.length > 0 ? filteredData.map((row) => (
                         <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
                           <td className="px-8 py-5">
                             <input value={row.no} onChange={(e) => updateRow(row.id, 'no', e.target.value)} className="w-full bg-transparent text-center font-black text-slate-800 outline-none" />
@@ -431,7 +493,17 @@ const App: React.FC = () => {
                             </button>
                           </td>
                         </tr>
-                      ))}
+                      )) : (
+                        <tr>
+                          <td colSpan={4} className="py-20 text-center">
+                            <div className="flex flex-col items-center text-slate-300">
+                              <FileSpreadsheet size={48} className="mb-4 opacity-20" />
+                              <p className="text-sm font-bold uppercase tracking-widest">Belum ada data donatur</p>
+                              <p className="text-[10px] mt-2">Gunakan tombol TAMBAH atau IMPORT EXCEL untuk memulai</p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
                     </tbody>
                  </table>
                </div>

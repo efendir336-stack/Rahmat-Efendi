@@ -24,6 +24,7 @@
                 print-color-adjust: exact !important;
                 margin: 0 !important;
                 padding: 0 !important;
+                overflow: hidden;
             }
             .no-print {
                 display: none !important;
@@ -37,46 +38,45 @@
                 width: 210mm !important;
                 margin: 0 !important;
             }
-            /* Kontainer Halaman: Membagi kertas A4 portrait menjadi 4 bagian baris */
+            /* Kontainer Halaman: Memaksimalkan area A4 */
             .print-page {
                 width: 210mm !important;
                 height: 297mm !important;
                 display: grid !important;
-                grid-template-columns: 1fr !important;
-                grid-template-rows: repeat(4, 1fr) !important;
+                /* Rows ditentukan secara dinamis di inline style React */
                 page-break-after: always !important;
                 break-after: page !important;
-                padding: 10mm !important; 
+                padding: 5mm !important; /* Margin minimal untuk printer */
                 box-sizing: border-box !important;
-                gap: 5mm !important;
+                gap: 2mm !important; /* Jarak antar kartu minimal */
+                overflow: hidden !important;
             }
             .print-item {
                 border: 2px solid black !important;
                 height: 100% !important;
+                width: 100% !important;
                 display: flex !important;
                 flex-direction: column !important;
                 justify-content: space-between !important;
                 box-sizing: border-box !important;
-                padding: 10px !important;
+                padding: 8px !important;
                 position: relative !important;
+                overflow: hidden !important;
             }
         }
 
-        /* Tampilan Layar (Preview) Portrait 4 Kartu */
+        /* Tampilan Layar (Preview) agar sesuai proporsi A4 */
         .screen-page-container {
             background: white;
             box-shadow: 0 0 40px rgba(0,0,0,0.1);
             margin: 30px auto;
-            width: 100%;
-            max-width: 800px;
-            aspect-ratio: 210 / 297;
+            width: 210mm;
+            height: 297mm;
             display: grid;
-            grid-template-columns: 1fr;
-            grid-template-rows: repeat(4, 1fr);
-            padding: 10mm;
+            padding: 5mm;
             box-sizing: border-box;
-            border-radius: 8px;
-            gap: 5mm;
+            border-radius: 4px;
+            gap: 2mm;
         }
 
         .mosque-title {
