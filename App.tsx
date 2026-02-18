@@ -4,7 +4,8 @@ import {
   Download, Upload, Printer, Settings, Plus, Trash2, 
   FileText, Layout, CheckCircle, AlertCircle, RefreshCcw, 
   Search, FileSpreadsheet, Info, ChevronRight, Save, Edit3,
-  Maximize, Minimize, Zap, X, Sliders, FileType, FileDown
+  Maximize, Minimize, Zap, X, Sliders, FileType, FileDown, 
+  Square, ArrowUpToLine
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { DonationRecord, HeaderConfig } from './types';
@@ -15,12 +16,17 @@ const STORAGE_KEY_DATA = 'jadwal_tajil_data';
 const STORAGE_KEY_HEADER = 'jadwal_tajil_header';
 const STORAGE_KEY_PRINT_SCALE = 'jadwal_tajil_print_scale';
 const STORAGE_KEY_ITEMS_PER_PAGE = 'jadwal_tajil_items_per_page';
+const STORAGE_KEY_PRINT_MARGIN = 'jadwal_tajil_print_margin';
 
 const App: React.FC = () => {
   const [showPrint, setShowPrint] = useState(false);
   const [printScale, setPrintScale] = useState<number>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_PRINT_SCALE);
     return saved ? parseFloat(saved) : 1.0;
+  });
+  const [printMargin, setPrintMargin] = useState<number>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_PRINT_MARGIN);
+    return saved ? parseInt(saved) : 10; // Default 10mm safe margin
   });
   const [highQuality, setHighQuality] = useState(true);
   const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
@@ -58,6 +64,10 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_ITEMS_PER_PAGE, itemsPerPage.toString());
   }, [itemsPerPage]);
+
+  useEffect(() => {
+    localStorage.setItem(STORAGE_KEY_PRINT_MARGIN, printMargin.toString());
+  }, [printMargin]);
 
   const filteredData = useMemo(() => {
     return data.filter(item => 
@@ -291,7 +301,8 @@ const App: React.FC = () => {
               <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
               <div>
                 <p className="text-sm font-bold text-blue-900">Kontrol Presisi Cetak:</p>
-                <p className="text-xs text-blue-700">Skala: {Math.round(printScale * 100)}% | Resolusi: {highQuality ? 'Tinggi' : 'Standar'} | Isi: {itemsPerPage} Donatur/Hal</p>
+                <p className="text-xs text-blue-700">Skala: {Math.round(printScale * 100)}% | Margin: {printMargin}mm | Isi: {itemsPerPage} Donatur/Hal</p>
+                <p className="text-[10px] text-blue-600 mt-1">Tip: Gunakan "Margin Pengamanan" jika printer memotong bagian tepi kertas.</p>
               </div>
             </div>
             <div className="bg-white p-4 shadow-2xl rounded-3xl border border-slate-200 print-area mx-auto overflow-hidden">
@@ -301,6 +312,7 @@ const App: React.FC = () => {
                 scale={printScale} 
                 highQuality={highQuality} 
                 itemsPerPage={itemsPerPage}
+                margin={printMargin}
               />
             </div>
           </div>
@@ -352,21 +364,41 @@ const App: React.FC = () => {
                 </div>
 
                 <div className="space-y-6">
-                  {/* Scale Setting */}
-                  <div>
-                    <div className="flex justify-between items-end mb-2">
-                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Skala Cetak (Presisi)</label>
-                      <span className="text-emerald-600 font-black text-sm">{Math.round(printScale * 100)}%</span>
+                  <div className="grid grid-cols-2 gap-6">
+                    {/* Scale Setting */}
+                    <div>
+                      <div className="flex justify-between items-end mb-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Skala Cetak</label>
+                        <span className="text-emerald-600 font-black text-xs">{Math.round(printScale * 100)}%</span>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <Minimize size={14} className="text-slate-400" />
+                        <input 
+                          type="range" min="0.5" max="1.5" step="0.01" 
+                          value={printScale} 
+                          onChange={(e) => setPrintScale(parseFloat(e.target.value))}
+                          className="flex-grow h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                        />
+                        <Maximize size={14} className="text-slate-400" />
+                      </div>
                     </div>
-                    <div className="flex items-center space-x-4">
-                      <Minimize size={16} className="text-slate-400" />
-                      <input 
-                        type="range" min="0.5" max="1.5" step="0.01" 
-                        value={printScale} 
-                        onChange={(e) => setPrintScale(parseFloat(e.target.value))}
-                        className="flex-grow h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
-                      />
-                      <Maximize size={16} className="text-slate-400" />
+
+                    {/* Margin Setting */}
+                    <div>
+                      <div className="flex justify-between items-end mb-2">
+                        <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Margin Aman</label>
+                        <span className="text-blue-600 font-black text-xs">{printMargin}mm</span>
+                      </div>
+                      <div className="flex items-center space-x-4">
+                        <ArrowUpToLine size={14} className="text-slate-400" />
+                        <input 
+                          type="range" min="0" max="25" step="1" 
+                          value={printMargin} 
+                          onChange={(e) => setPrintMargin(parseInt(e.target.value))}
+                          className="flex-grow h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-blue-500"
+                        />
+                        <Square size={14} className="text-slate-400" />
+                      </div>
                     </div>
                   </div>
 
@@ -394,9 +426,9 @@ const App: React.FC = () => {
                     </div>
                   </div>
                   
-                  <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl flex items-start space-x-3">
-                    <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-[10px] text-amber-800 font-medium leading-relaxed">Sesuaikan skala jika hasil cetak terpotong. Jumlah donatur per halaman akan memengaruhi besar kecilnya kartu di kertas A4.</p>
+                  <div className="p-3 bg-blue-50 border border-blue-100 rounded-2xl flex items-start space-x-3">
+                    <Info size={16} className="text-blue-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-blue-800 font-medium leading-relaxed">PENTING: Jika bagian atas/bawah terpotong printer, naikkan "Margin Aman". Printer fisik membutuhkan ruang kosong di tepi kertas.</p>
                   </div>
                 </div>
               </div>

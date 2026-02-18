@@ -24,7 +24,7 @@
                 print-color-adjust: exact !important;
                 margin: 0 !important;
                 padding: 0 !important;
-                overflow: hidden;
+                overflow: visible !important;
             }
             .no-print {
                 display: none !important;
@@ -38,18 +38,17 @@
                 width: 210mm !important;
                 margin: 0 !important;
             }
-            /* Kontainer Halaman: Memaksimalkan area A4 */
+            /* Kontainer Halaman: Memaksimalkan area A4 dengan padding dinamis */
             .print-page {
                 width: 210mm !important;
                 height: 297mm !important;
                 display: grid !important;
-                /* Rows ditentukan secara dinamis di inline style React */
                 page-break-after: always !important;
                 break-after: page !important;
-                padding: 5mm !important; /* Margin minimal untuk printer */
                 box-sizing: border-box !important;
-                gap: 2mm !important; /* Jarak antar kartu minimal */
+                gap: 2mm !important;
                 overflow: hidden !important;
+                position: relative !important;
             }
             .print-item {
                 border: 2px solid black !important;
@@ -73,7 +72,6 @@
             width: 210mm;
             height: 297mm;
             display: grid;
-            padding: 5mm;
             box-sizing: border-box;
             border-radius: 4px;
             gap: 2mm;
