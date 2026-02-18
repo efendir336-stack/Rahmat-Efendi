@@ -44,20 +44,20 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header }) => {
                  </svg>
               </div>
 
-              {/* Header Kartu */}
-              <div className="text-center mb-3 pb-2 border-b border-dashed border-black/20">
-                <div className="text-[9px] text-[#967d34] font-header italic opacity-80 mb-1">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</div>
-                <h1 className="text-sm font-black uppercase text-[#967d34] leading-tight px-2">
+              {/* Header Kartu - Diperbesar */}
+              <div className="text-center mb-4 pb-2 border-b-2 border-dashed border-black/30">
+                <div className="text-[11px] text-[#967d34] font-header italic opacity-90 mb-1">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</div>
+                <h1 className="text-xl font-black uppercase text-[#967d34] leading-tight px-2 mb-1">
                   {header.mosqueName}
                 </h1>
-                <p className="text-[10px] font-black text-slate-700 uppercase tracking-tighter mt-1">
+                <p className="text-[14px] font-black text-slate-800 uppercase tracking-tight">
                   {header.hijriYear}
                 </p>
-                <div className="mt-2">
-                  <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest leading-none">
+                <div className="mt-3">
+                  <p className="text-[11px] font-bold text-slate-500 uppercase tracking-widest leading-none mb-1">
                     {header.topHeader}
                   </p>
-                  <h2 className="text-[10px] font-black uppercase text-slate-900 mt-1">
+                  <h2 className="text-[14px] font-black uppercase text-slate-900 border-t border-slate-200 pt-1 mt-1">
                     {header.subHeader}
                   </h2>
                 </div>
@@ -65,35 +65,35 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header }) => {
 
               {/* Tabel Konten */}
               <div className="flex-grow flex flex-col justify-center">
-                <table className="w-full border-collapse border-[1.5px] border-black text-[10px]">
+                <table className="w-full border-collapse border-[2px] border-black text-[11px]">
                   <thead>
                     <tr className="bg-slate-50">
-                      <th className="border-[1.5px] border-black p-1 font-black w-8">NO</th>
-                      <th className="border-[1.5px] border-black p-1 font-black">NAMA DONATUR</th>
+                      <th className="border-[2px] border-black p-1 font-black w-10">NO</th>
+                      <th className="border-[2px] border-black p-1 font-black">NAMA DONATUR</th>
                     </tr>
                   </thead>
                   <tbody>
                     <tr>
-                      <td className="border-[1.5px] border-black p-2 text-center align-middle font-black text-lg">
+                      <td className="border-[2px] border-black p-2 text-center align-middle font-black text-2xl">
                         {row.no}
                       </td>
-                      <td className="border-[1.5px] border-black p-2 text-center align-middle font-black uppercase text-sm leading-tight">
+                      <td className="border-[2px] border-black p-2 text-center align-middle font-black uppercase text-base leading-tight">
                         {row.name || "________________"}
                       </td>
                     </tr>
                     <tr className="bg-slate-50">
-                      <th colSpan={2} className="border-[1.5px] border-black p-1 font-black">JADWAL TANGGAL & JENIS</th>
+                      <th colSpan={2} className="border-[2px] border-black p-1 font-black">JADWAL TANGGAL & JENIS</th>
                     </tr>
                     <tr>
-                      <td colSpan={2} className="border-[1.5px] border-black p-2">
-                        <div className="flex flex-wrap justify-center gap-2 mb-2">
+                      <td colSpan={2} className="border-[2px] border-black p-3">
+                        <div className="flex flex-wrap justify-center gap-3 mb-3">
                           {row.dates.map((date, dIdx) => (
-                            <span key={dIdx} className="bg-slate-100 px-2 py-0.5 rounded border border-slate-300 font-mono font-bold text-[10px]">
-                              {date || "__/__/____"}
+                            <span key={dIdx} className="bg-slate-100 px-3 py-1 rounded border border-slate-400 font-mono font-bold text-[12px]">
+                              {date || "__/__/2026"}
                             </span>
                           ))}
                         </div>
-                        <p className="text-center font-bold italic text-slate-600 text-[9px] border-t border-slate-100 pt-1">
+                        <p className="text-center font-bold italic text-slate-700 text-[10px] border-t border-slate-100 pt-2">
                           {row.type}
                         </p>
                       </td>
@@ -103,13 +103,13 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header }) => {
               </div>
 
               {/* Footer Kartu */}
-              <div className="mt-3 flex justify-between items-end opacity-60">
-                <div className="text-[7px] font-bold leading-tight">
-                   <p>SISTEM E-JADWAL TA'JIL</p>
-                   <p className="text-emerald-700">#AMANAH-DIGITAL</p>
+              <div className="mt-4 flex justify-between items-end opacity-70">
+                <div className="text-[8px] font-bold leading-tight uppercase tracking-wider">
+                   <p>SISTEM E-JADWAL TA'JIL MASJID</p>
+                   <p className="text-emerald-800">#AMANAH-DIGITAL-PRO</p>
                 </div>
                 <div className="text-right">
-                   <span className="font-header text-[10px] font-bold text-slate-300">SLIP #{row.no}</span>
+                   <span className="font-header text-[12px] font-black text-slate-400">SLIP #{row.no}</span>
                 </div>
               </div>
             </div>
@@ -117,7 +117,7 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header }) => {
           
           {/* Mengisi grid kosong jika data terakhir < 4 agar layout tetap konsisten */}
           {pageData.length < 4 && Array.from({ length: 4 - pageData.length }).map((_, i) => (
-            <div key={`empty-${i}`} className="border-[1.5px] border-dashed border-slate-200 rounded-lg"></div>
+            <div key={`empty-${i}`} className="border-[2px] border-dashed border-slate-200 rounded-lg"></div>
           ))}
         </div>
       ))}
