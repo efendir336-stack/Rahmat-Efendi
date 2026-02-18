@@ -14,7 +14,6 @@ const STORAGE_KEY_DATA = 'jadwal_tajil_data';
 const STORAGE_KEY_HEADER = 'jadwal_tajil_header';
 
 const App: React.FC = () => {
-  // Mode Cetak dinonaktifkan secara default (false) sesuai permintaan
   const [showPrint, setShowPrint] = useState(false);
   
   const [data, setData] = useState<DonationRecord[]>(() => {
@@ -30,7 +29,6 @@ const App: React.FC = () => {
   const [isEditingHeader, setIsEditingHeader] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // Persistence
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY_DATA, JSON.stringify(data));
   }, [data]);
@@ -39,7 +37,6 @@ const App: React.FC = () => {
     localStorage.setItem(STORAGE_KEY_HEADER, JSON.stringify(headerConfig));
   }, [headerConfig]);
 
-  // Exit Confirmation
   useEffect(() => {
     const handleBeforeUnload = (e: BeforeUnloadEvent) => {
       if (data.length > 0) {
@@ -59,13 +56,58 @@ const App: React.FC = () => {
   }, [data, searchQuery]);
 
   const isValidDate = (dateStr: string) => {
-    if (!dateStr.trim()) return true;
-    const regexNumeric = /^\d{1,2}\/\d{1,2}\/\d{2,4}$/;
+    if (!dateStr || !dateStr.trim()) return true;
+    const regexNumeric = /^\d{1,2}\/\d{1,2}\/\d{4}$/;
     if (!regexNumeric.test(dateStr)) return false;
     const [d, m, y] = dateStr.split('/').map(Number);
-    const fullYear = y < 100 ? 2000 + y : y;
-    const dateObj = new Date(fullYear, m - 1, d);
-    return dateObj.getFullYear() === fullYear && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
+    const dateObj = new Date(y, m - 1, d);
+    return dateObj.getFullYear() === y && dateObj.getMonth() === m - 1 && dateObj.getDate() === d;
+  };
+
+  /**
+   * Helper untuk memproses berbagai format tanggal dari Excel.
+   * Mengonversi segalanya ke format DD/MM/YYYY.
+   */
+  const processExcelValue = (val: any): string => {
+    if (val === undefined || val === null || val === '') return '';
+    
+    let dateObj: Date | null = null;
+
+    // 1. Jika sudah berupa objek Date (karena cellDates: true)
+    if (val instanceof Date) {
+      dateObj = val;
+    } 
+    // 2. Jika berupa angka serial Excel (misal 46070)
+    else if (typeof val === 'number' && val > 30000) {
+      const parsed = XLSX.SSF.parse_date_code(val);
+      dateObj = new Date(parsed.y, parsed.m - 1, parsed.d);
+    } 
+    // 3. Jika berupa String, coba deteksi formatnya
+    else {
+      const str = val.toString().trim();
+      
+      // Deteksi format YYYY-MM-DD atau YYYY/MM/DD
+      if (/^\d{4}[-/]\d{1,2}[-/]\d{1,2}$/.test(str)) {
+        const parts = str.split(/[-/]/);
+        dateObj = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1, parseInt(parts[2]));
+      }
+      // Deteksi format DD-MM-YYYY atau DD/MM/YYYY
+      else if (/^\d{1,2}[-/]\d{1,2}[-/]\d{4}$/.test(str)) {
+        const parts = str.split(/[-/]/);
+        dateObj = new Date(parseInt(parts[2]), parseInt(parts[1]) - 1, parseInt(parts[0]));
+      }
+    }
+
+    // Jika berhasil mendapatkan objek Date yang valid, format ke DD/MM/YYYY
+    if (dateObj && !isNaN(dateObj.getTime())) {
+      const d = dateObj.getDate().toString().padStart(2, '0');
+      const m = (dateObj.getMonth() + 1).toString().padStart(2, '0');
+      const y = dateObj.getFullYear();
+      return `${d}/${m}/${y}`;
+    }
+
+    // Jika gagal, kembalikan teks asli (pengguna bisa melihatnya salah di editor)
+    return val.toString().trim();
   };
 
   const downloadTemplate = () => {
@@ -95,22 +137,33 @@ const App: React.FC = () => {
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
+    
     if (data.length > 0 && !confirm("Mengunggah file baru akan menggantikan data yang ada. Lanjutkan?")) {
       e.target.value = '';
       return;
     }
+
     const reader = new FileReader();
     reader.onload = (evt) => {
       try {
         const bstr = evt.target?.result;
-        const wb = XLSX.read(bstr, { type: 'binary' });
+        // Gunakan cellDates: true agar sel tanggal terbaca sebagai objek Date
+        const wb = XLSX.read(bstr, { type: 'binary', cellDates: true });
         const ws = wb.Sheets[wb.SheetNames[0]];
         const rawData = XLSX.utils.sheet_to_json<any>(ws);
+        
         const formattedData: DonationRecord[] = rawData.map((row, index) => {
           const dates: string[] = [];
+          
+          // Cari kolom yang mengandung kata 'tanggal'
           Object.keys(row).forEach(key => {
-            if (key.toLowerCase().includes('tanggal')) dates.push(row[key].toString());
+            const cleanKey = key.toLowerCase().trim();
+            if (cleanKey.includes('tanggal')) {
+              const formattedDate = processExcelValue(row[key]);
+              if (formattedDate) dates.push(formattedDate);
+            }
           });
+
           return {
             id: Math.random().toString(36).substr(2, 9),
             no: row.No || row.no || index + 1,
@@ -119,10 +172,12 @@ const App: React.FC = () => {
             type: row.Jenis || row.jenis || row['Jenis Sumbangan'] || 'Makanan / Uang'
           };
         });
+
         setData(formattedData);
-        alert("Data berhasil diimpor!");
+        alert(`Berhasil mengimpor ${formattedData.length} data donatur.`);
       } catch (err) {
-        alert("Gagal membaca file.");
+        console.error(err);
+        alert("Gagal membaca file Excel. Pastikan format file benar.");
       }
     };
     reader.readAsBinaryString(file);
@@ -132,7 +187,7 @@ const App: React.FC = () => {
   const handlePrint = () => {
     const hasErrors = data.some(row => row.dates.some(d => !isValidDate(d)));
     if (hasErrors) {
-      if (confirm("Ada format tanggal yang tidak valid. Tetap cetak?")) window.print();
+      if (confirm("Ada format tanggal yang tidak valid (gunakan DD/MM/YYYY). Tetap cetak?")) window.print();
     } else {
       window.print();
     }
@@ -160,7 +215,6 @@ const App: React.FC = () => {
 
   return (
     <div className="min-h-screen flex flex-col bg-slate-100 font-sans selection:bg-emerald-100">
-      {/* Navbar Fixed */}
       <nav className="no-print bg-emerald-900 text-white shadow-2xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
@@ -226,14 +280,12 @@ const App: React.FC = () => {
                 <p className="text-xs text-blue-700">Gunakan kertas A4, pastikan orientasi di setelan printer adalah <b>Landscape</b>. Atur Margin ke "None".</p>
               </div>
             </div>
-            {/* Menggunakan max-w-6xl untuk mengakomodasi lebar landscape di layar */}
             <div className="bg-white p-4 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl border border-slate-200 print-area mx-auto max-w-6xl min-h-[8in]">
               <PrintPreview data={data} header={headerConfig} />
             </div>
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-            {/* Header Settings Card */}
             <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
               <div className="flex justify-between items-center mb-8">
                 <div className="flex items-center space-x-3 text-emerald-800">
@@ -268,7 +320,6 @@ const App: React.FC = () => {
               </div>
             </div>
 
-            {/* Table Area */}
             <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
                <div className="p-6 border-b bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="relative w-full md:w-80">
@@ -296,7 +347,7 @@ const App: React.FC = () => {
                       <span>Template</span>
                     </button>
                     <button 
-                      onClick={() => { if(confirm("PERINGATAN: Anda akan menghapus SELURUH data donatur. Tindakan ini tidak dapat dibatalkan. Lanjutkan?")) setData([]); }}
+                      onClick={() => { if(confirm("Hapus seluruh data?")) setData([]); }}
                       className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-5 py-3 text-rose-600 font-black text-xs hover:bg-rose-50 rounded-2xl transition-all border border-rose-100"
                     >
                       <Trash2 size={16} />
