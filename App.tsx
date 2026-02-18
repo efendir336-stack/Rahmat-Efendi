@@ -173,7 +173,7 @@ const App: React.FC = () => {
                   {showPrint ? 'PRATINJAU CETAK' : 'EDITOR DATA TA\'JIL'}
                 </h1>
                 <p className="text-[10px] text-emerald-300 mt-1 uppercase font-bold tracking-widest opacity-80">
-                  {showPrint ? 'Presisi Kartu Donatur' : 'Kelola Data Donatur'}
+                  {showPrint ? 'Mode Landscape Aktif' : 'Kelola Data Donatur'}
                 </p>
               </div>
             </div>
@@ -222,11 +222,12 @@ const App: React.FC = () => {
             <div className="no-print bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6 flex items-start space-x-3">
               <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
               <div>
-                <p className="text-sm font-bold text-blue-900">Tips Pencetakan Presisi:</p>
-                <p className="text-xs text-blue-700">Gunakan kertas A4, atur Margin ke "None" atau "Minimum" pada setelan browser Anda untuk hasil terbaik.</p>
+                <p className="text-sm font-bold text-blue-900">Tips Pencetakan Landscape:</p>
+                <p className="text-xs text-blue-700">Gunakan kertas A4, pastikan orientasi di setelan printer adalah <b>Landscape</b>. Atur Margin ke "None".</p>
               </div>
             </div>
-            <div className="bg-white p-6 md:p-16 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl border border-slate-200 print-area mx-auto max-w-4xl min-h-[11in]">
+            {/* Menggunakan max-w-6xl untuk mengakomodasi lebar landscape di layar */}
+            <div className="bg-white p-4 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl border border-slate-200 print-area mx-auto max-w-6xl min-h-[8in]">
               <PrintPreview data={data} header={headerConfig} />
             </div>
           </div>
@@ -279,7 +280,7 @@ const App: React.FC = () => {
                       className="w-full pl-12 pr-4 py-3 bg-white border border-slate-200 rounded-2xl focus:ring-4 focus:ring-emerald-500/10 focus:border-emerald-500 outline-none transition-all font-medium"
                     />
                   </div>
-                  <div className="flex space-x-3 w-full md:w-auto">
+                  <div className="flex flex-wrap gap-3 w-full md:w-auto">
                     <button 
                       onClick={addNewRow}
                       className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-6 py-3 bg-emerald-600 text-white rounded-2xl font-black hover:bg-emerald-700 shadow-lg transition-all active:scale-95"
@@ -292,7 +293,14 @@ const App: React.FC = () => {
                       className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 text-emerald-700 font-bold text-xs hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100"
                     >
                       <FileSpreadsheet size={16} />
-                      <span>Template Excel</span>
+                      <span>Template</span>
+                    </button>
+                    <button 
+                      onClick={() => { if(confirm("PERINGATAN: Anda akan menghapus SELURUH data donatur. Tindakan ini tidak dapat dibatalkan. Lanjutkan?")) setData([]); }}
+                      className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-5 py-3 text-rose-600 font-black text-xs hover:bg-rose-50 rounded-2xl transition-all border border-rose-100"
+                    >
+                      <Trash2 size={16} />
+                      <span>HAPUS SEMUA</span>
                     </button>
                   </div>
                </div>
@@ -363,6 +371,13 @@ const App: React.FC = () => {
                       ))}
                     </tbody>
                  </table>
+                 {filteredData.length === 0 && (
+                   <div className="py-20 text-center flex flex-col items-center opacity-30">
+                     <FileText size={64} className="mb-4 text-slate-400" />
+                     <p className="font-bold text-slate-600">Daftar donatur kosong.</p>
+                     <p className="text-sm">Klik "TAMBAH BARIS" atau "Upload Excel" untuk memulai.</p>
+                   </div>
+                 )}
                </div>
             </div>
           </div>

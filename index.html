@@ -13,35 +13,42 @@
         
         @media print {
             @page {
-                margin: 0.5cm;
-                size: A4;
+                margin: 0;
+                size: A4 landscape;
             }
             body {
                 background-color: white !important;
                 -webkit-print-color-adjust: exact;
                 print-color-adjust: exact;
                 margin: 0;
+                padding: 0;
             }
             .no-print {
                 display: none !important;
             }
             .print-area {
-                width: 100% !important;
-                margin: 0 !important;
-                padding: 0 !important;
+                width: 297mm !important;
+                height: 210mm !important;
+                margin: 0 auto !important;
+                padding: 10mm !important;
                 border: none !important;
                 box-shadow: none !important;
                 display: block !important;
+                overflow: hidden;
+            }
+            .print-page {
+                page-break-after: always !important;
+                break-after: page !important;
+                height: 190mm !important; /* Area cetak bersih dalam landscape */
+                display: grid !important;
+                grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-rows: repeat(2, 1fr) !important;
+                gap: 5mm !important;
             }
             .print-item {
-                page-break-inside: avoid !important;
-                break-inside: avoid !important;
-                margin-bottom: 20px !important;
                 border: 2px solid black !important;
-                display: block !important;
+                box-sizing: border-box !important;
             }
-            /* Menghilangkan header/footer default browser */
-            header, footer { display: none !important; }
         }
 
         /* Custom scrollbar untuk tampilan editor */
