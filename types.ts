@@ -12,4 +12,5 @@ export interface HeaderConfig {
   subHeader: string;
   mosqueName: string;
   hijriYear: string;
+  masehiYear: string;
 }

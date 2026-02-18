@@ -30,10 +30,11 @@ const App: React.FC = () => {
   
   const [headerConfig, setHeaderConfig] = useState<HeaderConfig>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_HEADER);
-    return saved ? JSON.parse(saved) : DEFAULT_HEADER;
+    // Handle old storage without masehiYear
+    const parsed = saved ? JSON.parse(saved) : DEFAULT_HEADER;
+    return { ...DEFAULT_HEADER, ...parsed };
   });
 
-  // State untuk manajemen pengeditan header
   const [isEditingHeader, setIsEditingHeader] = useState(false);
   const [tempHeaderConfig, setTempHeaderConfig] = useState<HeaderConfig>(headerConfig);
   const [searchQuery, setSearchQuery] = useState('');
@@ -198,7 +199,6 @@ const App: React.FC = () => {
     setData([...data, { id: Math.random().toString(36).substr(2, 9), no: newNo, name: '', dates: [''], type: 'Makanan / Uang' }]);
   };
 
-  // Fungsi pembantu untuk edit header
   const handleStartEditHeader = () => {
     setTempHeaderConfig({ ...headerConfig });
     setIsEditingHeader(true);
@@ -346,14 +346,15 @@ const App: React.FC = () => {
                 </div>
               </div>
               
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {[
                   { label: "Judul Atas", key: "topHeader" },
                   { label: "Sub Judul", key: "subHeader" },
+                  { label: "Nama Masjid", key: "mosqueName" },
                   { label: "Tahun Hijriyah", key: "hijriYear" },
-                  { label: "Nama Masjid", key: "mosqueName", full: true }
+                  { label: "Tahun Masehi", key: "masehiYear" }
                 ].map((item) => (
-                  <div key={item.key} className={`space-y-2 ${item.full ? 'md:col-span-2' : ''}`}>
+                  <div key={item.key} className="space-y-2">
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{item.label}</label>
                     <input 
                       disabled={!isEditingHeader}
