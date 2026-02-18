@@ -1,0 +1,5 @@
+{
+  "name": "Sistem Jadwal Ta'jil Masjid Nurul Huda",
+  "description": "Aplikasi manajemen dan cetak jadwal donasi ta'jil buka puasa dengan fitur unggah data Excel dan preview cetak presisi.",
+  "requestFramePermissions": []
+}
