@@ -4,7 +4,7 @@ import {
   Download, Upload, Printer, Settings, Plus, Trash2, 
   FileText, Layout, CheckCircle, AlertCircle, RefreshCcw, 
   Search, FileSpreadsheet, Info, ChevronRight, Save, Edit3,
-  Maximize, Minimize, Zap
+  Maximize, Minimize, Zap, X
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { DonationRecord, HeaderConfig } from './types';
@@ -33,7 +33,9 @@ const App: React.FC = () => {
     return saved ? JSON.parse(saved) : DEFAULT_HEADER;
   });
 
+  // State untuk manajemen pengeditan header
   const [isEditingHeader, setIsEditingHeader] = useState(false);
+  const [tempHeaderConfig, setTempHeaderConfig] = useState<HeaderConfig>(headerConfig);
   const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
@@ -196,6 +198,21 @@ const App: React.FC = () => {
     setData([...data, { id: Math.random().toString(36).substr(2, 9), no: newNo, name: '', dates: [''], type: 'Makanan / Uang' }]);
   };
 
+  // Fungsi pembantu untuk edit header
+  const handleStartEditHeader = () => {
+    setTempHeaderConfig({ ...headerConfig });
+    setIsEditingHeader(true);
+  };
+
+  const handleSaveHeader = () => {
+    setHeaderConfig({ ...tempHeaderConfig });
+    setIsEditingHeader(false);
+  };
+
+  const handleCancelEditHeader = () => {
+    setIsEditingHeader(false);
+  };
+
   return (
     <div className="min-h-screen flex flex-col bg-slate-100 font-sans selection:bg-emerald-100">
       <nav className="no-print bg-emerald-900 text-white shadow-2xl sticky top-0 z-50">
@@ -298,12 +315,35 @@ const App: React.FC = () => {
                   <Settings size={22} />
                   <h2 className="text-lg font-bold tracking-tight uppercase">Konfigurasi Kepala Surat</h2>
                 </div>
-                <button 
-                  onClick={() => setIsEditingHeader(!isEditingHeader)}
-                  className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${isEditingHeader ? 'bg-emerald-600 text-white' : 'text-emerald-600 hover:bg-emerald-50 border border-emerald-100'}`}
-                >
-                  {isEditingHeader ? 'Simpan' : 'Ubah Header'}
-                </button>
+                
+                <div className="flex items-center space-x-2">
+                  {isEditingHeader ? (
+                    <>
+                      <button 
+                        onClick={handleCancelEditHeader}
+                        className="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all border border-slate-200"
+                      >
+                        <X size={16} />
+                        <span>Batal</span>
+                      </button>
+                      <button 
+                        onClick={handleSaveHeader}
+                        className="flex items-center space-x-2 px-6 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-md active:scale-95"
+                      >
+                        <Save size={16} />
+                        <span>Simpan</span>
+                      </button>
+                    </>
+                  ) : (
+                    <button 
+                      onClick={handleStartEditHeader}
+                      className="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold text-emerald-600 hover:bg-emerald-50 border border-emerald-100 transition-all"
+                    >
+                      <Edit3 size={16} />
+                      <span>Ubah Header</span>
+                    </button>
+                  )}
+                </div>
               </div>
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -317,9 +357,14 @@ const App: React.FC = () => {
                     <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{item.label}</label>
                     <input 
                       disabled={!isEditingHeader}
-                      value={(headerConfig as any)[item.key]}
-                      onChange={(e) => setHeaderConfig({...headerConfig, [item.key]: e.target.value})}
-                      className="w-full border-2 border-slate-100 bg-slate-50 p-3 rounded-2xl focus:border-emerald-500 focus:bg-white transition-all outline-none font-bold text-slate-700"
+                      value={isEditingHeader ? (tempHeaderConfig as any)[item.key] : (headerConfig as any)[item.key]}
+                      onChange={(e) => setTempHeaderConfig({...tempHeaderConfig, [item.key]: e.target.value})}
+                      placeholder={`Masukkan ${item.label.toLowerCase()}...`}
+                      className={`w-full border-2 p-3 rounded-2xl transition-all outline-none font-bold ${
+                        isEditingHeader 
+                          ? 'border-emerald-200 bg-white focus:border-emerald-500 text-emerald-900 shadow-sm ring-4 ring-emerald-500/5' 
+                          : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
+                      }`}
                     />
                   </div>
                 ))}

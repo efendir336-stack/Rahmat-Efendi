@@ -26,28 +26,31 @@
             .no-print {
                 display: none !important;
             }
+            /* Kontainer utama cetak harus memenuhi layar */
             .print-area {
+                width: 100% !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                display: block !important;
+            }
+            /* Setiap halaman dipaksa pecah setelah kontennya selesai */
+            .print-page {
                 width: 297mm !important;
                 height: 210mm !important;
-                margin: 0 auto !important;
-                padding: 10mm !important;
-                border: none !important;
-                box-shadow: none !important;
-                display: block !important;
-                overflow: hidden;
-            }
-            .print-page {
+                padding: 8mm !important;
                 page-break-after: always !important;
                 break-after: page !important;
-                height: 190mm !important; /* Area cetak bersih dalam landscape */
                 display: grid !important;
-                grid-template-columns: repeat(2, 1fr) !important;
-                grid-template-rows: repeat(2, 1fr) !important;
-                gap: 5mm !important;
+                grid-template-columns: 1fr 1fr !important;
+                grid-template-rows: 1fr 1fr !important;
+                gap: 6mm !important;
+                box-sizing: border-box !important;
+                position: relative !important;
             }
             .print-item {
                 border: 2px solid black !important;
                 box-sizing: border-box !important;
+                height: 100% !important;
             }
         }
 
