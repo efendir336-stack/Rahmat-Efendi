@@ -4,7 +4,7 @@ import {
   Download, Upload, Printer, Settings, Plus, Trash2, 
   FileText, Layout, CheckCircle, AlertCircle, RefreshCcw, 
   Search, FileSpreadsheet, Info, ChevronRight, Save, Edit3,
-  Maximize, Minimize, Zap, X
+  Maximize, Minimize, Zap, X, Sliders
 } from 'lucide-react';
 import * as XLSX from 'xlsx';
 import { DonationRecord, HeaderConfig } from './types';
@@ -14,6 +14,7 @@ import PrintPreview from './components/PrintPreview';
 const STORAGE_KEY_DATA = 'jadwal_tajil_data';
 const STORAGE_KEY_HEADER = 'jadwal_tajil_header';
 const STORAGE_KEY_PRINT_SCALE = 'jadwal_tajil_print_scale';
+const STORAGE_KEY_ITEMS_PER_PAGE = 'jadwal_tajil_items_per_page';
 
 const App: React.FC = () => {
   const [showPrint, setShowPrint] = useState(false);
@@ -22,6 +23,10 @@ const App: React.FC = () => {
     return saved ? parseFloat(saved) : 1.0;
   });
   const [highQuality, setHighQuality] = useState(true);
+  const [itemsPerPage, setItemsPerPage] = useState<number>(() => {
+    const saved = localStorage.getItem(STORAGE_KEY_ITEMS_PER_PAGE);
+    return saved ? parseInt(saved) : 4;
+  });
   
   const [data, setData] = useState<DonationRecord[]>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_DATA);
@@ -30,7 +35,6 @@ const App: React.FC = () => {
   
   const [headerConfig, setHeaderConfig] = useState<HeaderConfig>(() => {
     const saved = localStorage.getItem(STORAGE_KEY_HEADER);
-    // Handle old storage without masehiYear
     const parsed = saved ? JSON.parse(saved) : DEFAULT_HEADER;
     return { ...DEFAULT_HEADER, ...parsed };
   });
@@ -52,15 +56,8 @@ const App: React.FC = () => {
   }, [printScale]);
 
   useEffect(() => {
-    const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-      if (data.length > 0) {
-        e.preventDefault();
-        e.returnValue = ''; 
-      }
-    };
-    window.addEventListener('beforeunload', handleBeforeUnload);
-    return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-  }, [data]);
+    localStorage.setItem(STORAGE_KEY_ITEMS_PER_PAGE, itemsPerPage.toString());
+  }, [itemsPerPage]);
 
   const filteredData = useMemo(() => {
     return data.filter(item => 
@@ -209,13 +206,9 @@ const App: React.FC = () => {
     setIsEditingHeader(false);
   };
 
-  const handleCancelEditHeader = () => {
-    setIsEditingHeader(false);
-  };
-
   return (
     <div className="min-h-screen flex flex-col bg-slate-100 font-sans selection:bg-emerald-100">
-      <nav className="no-print bg-emerald-900 text-white shadow-2xl sticky top-0 z-50">
+      <nav className="no-print bg-slate-900 text-white shadow-2xl sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-20 items-center">
             <div className="flex items-center space-x-4">
@@ -227,66 +220,28 @@ const App: React.FC = () => {
                   {showPrint ? 'PRATINJAU CETAK' : 'EDITOR DATA TA\'JIL'}
                 </h1>
                 <p className="text-[10px] text-emerald-300 mt-1 uppercase font-bold tracking-widest opacity-80">
-                  {showPrint ? 'Mode Landscape Aktif' : 'Kelola Data Donatur'}
+                  {showPrint ? 'Mode Portrait Aktif' : 'Kelola Data Donatur'}
                 </p>
               </div>
             </div>
             
             <div className="flex items-center space-x-3">
-              {showPrint && (
-                <div className="flex items-center bg-emerald-800/50 rounded-xl px-4 py-2 border border-emerald-700/50 space-x-4">
-                  <div className="flex items-center space-x-2">
-                    <Minimize size={14} className="text-emerald-400" />
-                    <input 
-                      type="range" 
-                      min="0.8" 
-                      max="1.2" 
-                      step="0.05" 
-                      value={printScale} 
-                      onChange={(e) => setPrintScale(parseFloat(e.target.value))}
-                      className="w-24 h-1.5 bg-emerald-700 rounded-lg appearance-none cursor-pointer accent-yellow-400"
-                    />
-                    <Maximize size={14} className="text-emerald-400" />
-                    <span className="text-[10px] font-black w-8">{Math.round(printScale * 100)}%</span>
-                  </div>
-                  <div className="w-px h-6 bg-emerald-700 mx-2" />
-                  <button 
-                    onClick={() => setHighQuality(!highQuality)}
-                    className={`flex items-center space-x-2 px-3 py-1.5 rounded-lg text-[10px] font-black transition-all ${highQuality ? 'bg-yellow-400 text-emerald-950' : 'bg-emerald-700 text-emerald-300'}`}
-                  >
-                    <Zap size={12} fill={highQuality ? "currentColor" : "none"} />
-                    <span>RESOLUSI TINGGI</span>
-                  </button>
-                </div>
-              )}
-
               <button 
                 onClick={() => setShowPrint(!showPrint)}
-                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-black transition-all duration-300 shadow-xl active:scale-95 border-2 ${showPrint ? 'bg-white text-emerald-900 border-white' : 'bg-emerald-700 hover:bg-emerald-600 text-white border-emerald-500'}`}
+                className={`flex items-center space-x-2 px-6 py-3 rounded-xl font-black transition-all duration-300 shadow-xl active:scale-95 border-2 ${showPrint ? 'bg-white text-slate-900 border-white' : 'bg-slate-700 hover:bg-slate-600 text-white border-slate-500'}`}
               >
                 {showPrint ? <Edit3 size={18} /> : <Printer size={18} />}
                 <span>{showPrint ? 'Editor' : 'Cetak'}</span>
               </button>
 
-              {showPrint ? (
+              {showPrint && (
                 <button 
                   onClick={handlePrint}
-                  className="flex items-center space-x-2 px-8 py-3 bg-yellow-400 text-emerald-950 rounded-xl hover:bg-yellow-300 transition-all shadow-xl font-black active:scale-95"
+                  className="flex items-center space-x-2 px-8 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-400 transition-all shadow-xl font-black active:scale-95"
                 >
                   <Printer size={20} />
-                  <span>CETAK</span>
+                  <span>CETAK SEKARANG</span>
                 </button>
-              ) : (
-                <div className="flex items-center space-x-2">
-                   <button onClick={exportToExcel} className="p-3 bg-emerald-800 hover:bg-emerald-700 rounded-xl transition-all border border-emerald-600 text-white shadow-lg">
-                    <Download size={20} />
-                  </button>
-                  <label className="flex items-center space-x-2 px-5 py-3 bg-white text-emerald-900 rounded-xl cursor-pointer hover:bg-emerald-50 transition-all font-bold shadow-lg">
-                    <Upload size={18} />
-                    <span>Excel</span>
-                    <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} />
-                  </label>
-                </div>
               )}
             </div>
           </div>
@@ -300,80 +255,121 @@ const App: React.FC = () => {
               <Info className="text-blue-500 flex-shrink-0 mt-0.5" size={20} />
               <div>
                 <p className="text-sm font-bold text-blue-900">Kontrol Presisi Cetak:</p>
-                <p className="text-xs text-blue-700">Gunakan slider di navbar untuk menyesuaikan skala jika hasil cetak terpotong atau terlalu kecil. Mode <b>Resolusi Tinggi</b> menebalkan garis agar lebih tajam di kertas.</p>
+                <p className="text-xs text-blue-700">Skala: {Math.round(printScale * 100)}% | Resolusi: {highQuality ? 'Tinggi' : 'Standar'} | Isi: {itemsPerPage} Donatur/Hal</p>
               </div>
             </div>
-            <div className="bg-white p-4 md:p-10 shadow-[0_20px_50px_rgba(0,0,0,0.1)] rounded-3xl border border-slate-200 print-area mx-auto max-w-6xl overflow-hidden">
-              <PrintPreview data={data} header={headerConfig} scale={printScale} highQuality={highQuality} />
+            <div className="bg-white p-4 shadow-2xl rounded-3xl border border-slate-200 print-area mx-auto overflow-hidden">
+              <PrintPreview 
+                data={data} 
+                header={headerConfig} 
+                scale={printScale} 
+                highQuality={highQuality} 
+                itemsPerPage={itemsPerPage}
+              />
             </div>
           </div>
         ) : (
           <div className="space-y-8 animate-in fade-in zoom-in-95 duration-300">
-            <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
-              <div className="flex justify-between items-center mb-8">
-                <div className="flex items-center space-x-3 text-emerald-800">
-                  <Settings size={22} />
-                  <h2 className="text-lg font-bold tracking-tight uppercase">Konfigurasi Kepala Surat</h2>
+            {/* Konfigurasi Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Card 1: Header Config */}
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+                <div className="flex justify-between items-center mb-6">
+                  <div className="flex items-center space-x-3 text-slate-800">
+                    <Settings size={22} className="text-emerald-500" />
+                    <h2 className="text-lg font-black tracking-tight uppercase">Kepala Surat</h2>
+                  </div>
+                  <button 
+                    onClick={isEditingHeader ? handleSaveHeader : handleStartEditHeader}
+                    className={`flex items-center space-x-2 px-4 py-2 rounded-xl text-xs font-black transition-all border-2 ${isEditingHeader ? 'bg-emerald-500 text-white border-emerald-500' : 'text-slate-600 border-slate-100 hover:bg-slate-50'}`}
+                  >
+                    {isEditingHeader ? <Save size={14} /> : <Edit3 size={14} />}
+                    <span>{isEditingHeader ? 'SIMPAN' : 'UBAH TEKS'}</span>
+                  </button>
                 </div>
                 
-                <div className="flex items-center space-x-2">
-                  {isEditingHeader ? (
-                    <>
-                      <button 
-                        onClick={handleCancelEditHeader}
-                        className="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all border border-slate-200"
-                      >
-                        <X size={16} />
-                        <span>Batal</span>
-                      </button>
-                      <button 
-                        onClick={handleSaveHeader}
-                        className="flex items-center space-x-2 px-6 py-2 rounded-xl text-sm font-bold bg-emerald-600 text-white hover:bg-emerald-700 transition-all shadow-md active:scale-95"
-                      >
-                        <Save size={16} />
-                        <span>Simpan</span>
-                      </button>
-                    </>
-                  ) : (
-                    <button 
-                      onClick={handleStartEditHeader}
-                      className="flex items-center space-x-2 px-4 py-2 rounded-xl text-sm font-bold text-emerald-600 hover:bg-emerald-50 border border-emerald-100 transition-all"
-                    >
-                      <Edit3 size={16} />
-                      <span>Ubah Header</span>
-                    </button>
-                  )}
+                <div className="space-y-4">
+                  {[
+                    { label: "Nama Masjid", key: "mosqueName" },
+                    { label: "Tahun Hijriyah", key: "hijriYear" },
+                    { label: "Sub Judul", key: "subHeader" }
+                  ].map((item) => (
+                    <div key={item.key}>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">{item.label}</label>
+                      <input 
+                        disabled={!isEditingHeader}
+                        value={isEditingHeader ? (tempHeaderConfig as any)[item.key] : (headerConfig as any)[item.key]}
+                        onChange={(e) => setTempHeaderConfig({...tempHeaderConfig, [item.key]: e.target.value})}
+                        className={`w-full border-2 p-3 rounded-2xl outline-none font-bold transition-all ${isEditingHeader ? 'border-emerald-200 bg-white ring-4 ring-emerald-500/5' : 'border-slate-50 bg-slate-50 text-slate-400'}`}
+                      />
+                    </div>
+                  ))}
                 </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {[
-                  { label: "Judul Atas", key: "topHeader" },
-                  { label: "Sub Judul", key: "subHeader" },
-                  { label: "Nama Masjid", key: "mosqueName" },
-                  { label: "Tahun Hijriyah", key: "hijriYear" },
-                  { label: "Tahun Masehi", key: "masehiYear" }
-                ].map((item) => (
-                  <div key={item.key} className="space-y-2">
-                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">{item.label}</label>
-                    <input 
-                      disabled={!isEditingHeader}
-                      value={isEditingHeader ? (tempHeaderConfig as any)[item.key] : (headerConfig as any)[item.key]}
-                      onChange={(e) => setTempHeaderConfig({...tempHeaderConfig, [item.key]: e.target.value})}
-                      placeholder={`Masukkan ${item.label.toLowerCase()}...`}
-                      className={`w-full border-2 p-3 rounded-2xl transition-all outline-none font-bold ${
-                        isEditingHeader 
-                          ? 'border-emerald-200 bg-white focus:border-emerald-500 text-emerald-900 shadow-sm ring-4 ring-emerald-500/5' 
-                          : 'border-slate-100 bg-slate-50 text-slate-400 cursor-not-allowed'
-                      }`}
-                    />
+
+              {/* Card 2: Print Settings */}
+              <div className="bg-white rounded-3xl shadow-sm border border-slate-200 p-8">
+                <div className="flex items-center space-x-3 text-slate-800 mb-6">
+                  <Sliders size={22} className="text-emerald-500" />
+                  <h2 className="text-lg font-black tracking-tight uppercase">Pengaturan Cetak</h2>
+                </div>
+
+                <div className="space-y-6">
+                  {/* Scale Setting */}
+                  <div>
+                    <div className="flex justify-between items-end mb-2">
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Skala Cetak (Presisi)</label>
+                      <span className="text-emerald-600 font-black text-sm">{Math.round(printScale * 100)}%</span>
+                    </div>
+                    <div className="flex items-center space-x-4">
+                      <Minimize size={16} className="text-slate-400" />
+                      <input 
+                        type="range" min="0.5" max="1.5" step="0.01" 
+                        value={printScale} 
+                        onChange={(e) => setPrintScale(parseFloat(e.target.value))}
+                        className="flex-grow h-2 bg-slate-100 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+                      />
+                      <Maximize size={16} className="text-slate-400" />
+                    </div>
                   </div>
-                ))}
+
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Items Per Page */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Donatur Per Hal</label>
+                      <input 
+                        type="number" min="1" max="10" 
+                        value={itemsPerPage} 
+                        onChange={(e) => setItemsPerPage(parseInt(e.target.value) || 1)}
+                        className="w-full border-2 border-slate-100 bg-slate-50 p-3 rounded-2xl font-black outline-none focus:border-emerald-500 transition-all"
+                      />
+                    </div>
+                    {/* Quality Toggle */}
+                    <div>
+                      <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1 mb-1 block">Kualitas Garis</label>
+                      <button 
+                        onClick={() => setHighQuality(!highQuality)}
+                        className={`w-full p-3 rounded-2xl font-black text-xs transition-all flex items-center justify-center space-x-2 border-2 ${highQuality ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-slate-50 border-slate-100 text-slate-400'}`}
+                      >
+                        <Zap size={14} fill={highQuality ? "currentColor" : "none"} />
+                        <span>{highQuality ? 'TAJAM' : 'STANDAR'}</span>
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="p-3 bg-amber-50 border border-amber-100 rounded-2xl flex items-start space-x-3">
+                    <AlertCircle size={16} className="text-amber-500 flex-shrink-0 mt-0.5" />
+                    <p className="text-[10px] text-amber-800 font-medium leading-relaxed">Sesuaikan skala jika hasil cetak terpotong. Jumlah donatur per halaman akan memengaruhi besar kecilnya kartu di kertas A4.</p>
+                  </div>
+                </div>
               </div>
+
             </div>
 
+            {/* Data Table */}
             <div className="bg-white rounded-3xl shadow-xl border border-slate-200 overflow-hidden">
-               <div className="p-6 border-b bg-slate-50 flex flex-col md:flex-row justify-between items-center gap-4">
+               <div className="p-6 border-b bg-slate-50/50 flex flex-col md:flex-row justify-between items-center gap-4">
                   <div className="relative w-full md:w-80">
                     <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
                     <input 
@@ -388,38 +384,35 @@ const App: React.FC = () => {
                       <Plus size={20} />
                       <span>TAMBAH</span>
                     </button>
-                    <button onClick={downloadTemplate} className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-4 py-3 text-emerald-700 font-bold text-xs hover:bg-emerald-50 rounded-2xl transition-all border border-emerald-100">
-                      <FileSpreadsheet size={16} />
-                      <span>Template</span>
-                    </button>
-                    <button onClick={() => { if(confirm("Hapus seluruh data?")) setData([]); }} className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-5 py-3 text-rose-600 font-black text-xs hover:bg-rose-50 rounded-2xl transition-all border border-rose-100">
-                      <Trash2 size={16} />
-                      <span>HAPUS</span>
-                    </button>
+                    <label className="flex-1 md:flex-none flex items-center justify-center space-x-2 px-5 py-3 bg-white text-slate-900 rounded-xl cursor-pointer hover:bg-slate-50 transition-all font-bold shadow-sm border border-slate-200">
+                      <Upload size={18} />
+                      <span>IMPORT EXCEL</span>
+                      <input type="file" className="hidden" accept=".xlsx, .xls" onChange={handleFileUpload} />
+                    </label>
                   </div>
                </div>
                
                <div className="overflow-x-auto">
                  <table className="w-full">
                     <thead>
-                      <tr className="bg-slate-100/50 text-slate-500 text-[10px] font-black uppercase tracking-widest">
-                        <th className="px-8 py-5 w-20 text-center">No</th>
-                        <th className="px-8 py-5">Identitas Donatur</th>
-                        <th className="px-8 py-5">Jadwal Tanggal</th>
-                        <th className="px-8 py-5 text-center">Opsi</th>
+                      <tr className="bg-slate-50 text-slate-400 text-[10px] font-black uppercase tracking-widest border-b">
+                        <th className="px-8 py-4 w-20 text-center">No</th>
+                        <th className="px-8 py-4 text-left">Nama Donatur</th>
+                        <th className="px-8 py-4 text-left">Jadwal Tanggal</th>
+                        <th className="px-8 py-4 text-center">Opsi</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-100">
                       {filteredData.map((row) => (
-                        <tr key={row.id} className="hover:bg-emerald-50/20 transition-colors">
-                          <td className="px-8 py-6">
-                            <input value={row.no} onChange={(e) => updateRow(row.id, 'no', e.target.value)} className="w-full bg-transparent border-b border-transparent focus:border-emerald-300 outline-none text-center font-black text-emerald-800" />
+                        <tr key={row.id} className="hover:bg-slate-50/50 transition-colors">
+                          <td className="px-8 py-5">
+                            <input value={row.no} onChange={(e) => updateRow(row.id, 'no', e.target.value)} className="w-full bg-transparent text-center font-black text-slate-800 outline-none" />
                           </td>
-                          <td className="px-8 py-6">
-                            <input value={row.name} onChange={(e) => updateRow(row.id, 'name', e.target.value)} className="w-full bg-transparent border-b border-transparent focus:border-emerald-300 outline-none font-bold text-slate-800 text-lg" />
-                            <input value={row.type} onChange={(e) => updateRow(row.id, 'type', e.target.value)} className="w-full bg-transparent text-xs text-slate-400 mt-1 italic outline-none" />
+                          <td className="px-8 py-5">
+                            <input value={row.name} onChange={(e) => updateRow(row.id, 'name', e.target.value)} className="w-full bg-transparent font-bold text-slate-800 text-base outline-none mb-0.5" />
+                            <input value={row.type} onChange={(e) => updateRow(row.id, 'type', e.target.value)} className="w-full bg-transparent text-xs text-slate-400 outline-none" />
                           </td>
-                          <td className="px-8 py-6">
+                          <td className="px-8 py-5">
                              <div className="flex flex-wrap gap-2">
                                {row.dates.map((date, idx) => (
                                  <input 
@@ -427,17 +420,14 @@ const App: React.FC = () => {
                                    value={date}
                                    onChange={(e) => updateDate(row.id, idx, e.target.value)}
                                    placeholder="DD/MM/YYYY"
-                                   className={`px-3 py-1 rounded-lg border-2 text-sm font-mono ${isValidDate(date) ? 'border-slate-100 bg-slate-50 focus:border-emerald-400' : 'border-rose-200 bg-rose-50 text-rose-600'}`}
+                                   className={`px-3 py-1 rounded-lg border-2 text-xs font-mono font-bold ${isValidDate(date) ? 'border-slate-100 bg-slate-50 focus:border-emerald-400' : 'border-rose-100 bg-rose-50 text-rose-600'}`}
                                  />
                                ))}
-                               <button onClick={() => { const newDates = [...row.dates, '']; updateRow(row.id, 'dates', newDates); }} className="p-1 text-emerald-600 hover:bg-emerald-50 rounded">
-                                 <Plus size={14} />
-                               </button>
                              </div>
                           </td>
-                          <td className="px-8 py-6 text-center">
-                            <button onClick={() => setData(data.filter(d => d.id !== row.id))} className="p-2.5 text-slate-300 hover:text-rose-600 hover:bg-rose-50 rounded-xl transition-all">
-                              <Trash2 size={20} />
+                          <td className="px-8 py-5 text-center">
+                            <button onClick={() => setData(data.filter(d => d.id !== row.id))} className="p-2 text-slate-300 hover:text-rose-600 transition-all">
+                              <Trash2 size={18} />
                             </button>
                           </td>
                         </tr>
@@ -450,8 +440,8 @@ const App: React.FC = () => {
         )}
       </main>
 
-      <footer className="no-print mt-auto py-10 bg-emerald-950 text-emerald-200 text-center">
-        <p className="text-xs font-bold tracking-[0.2em] uppercase opacity-50">Sistem Digitalisasi Masjid & Musholla © 2024</p>
+      <footer className="no-print mt-auto py-8 bg-slate-900 text-slate-500 text-center">
+        <p className="text-[10px] font-black tracking-[0.2em] uppercase">Sistem Administrasi Masjid Digital © 2024</p>
       </footer>
     </div>
   );

@@ -7,10 +7,17 @@ interface PrintPreviewProps {
   header: HeaderConfig;
   scale?: number;
   highQuality?: boolean;
+  itemsPerPage?: number;
 }
 
-const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header, scale = 1.0, highQuality = true }) => {
-  // Bagi data menjadi 4 item per halaman portrait
+const PrintPreview: React.FC<PrintPreviewProps> = ({ 
+  data, 
+  header, 
+  scale = 1.0, 
+  highQuality = true,
+  itemsPerPage = 4
+}) => {
+  // Bagi data berdasarkan jumlah donatur per halaman yang ditentukan di dashboard
   const chunkData = (arr: DonationRecord[], size: number) => {
     const chunks = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -19,7 +26,7 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header, scale = 1.0, 
     return chunks;
   };
 
-  const pages = chunkData(data, 4);
+  const pages = chunkData(data, itemsPerPage);
 
   return (
     <div 
@@ -33,11 +40,17 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header, scale = 1.0, 
         <div 
           key={pageIdx} 
           className="print-page screen-page-container bg-white"
+          style={{
+            gridTemplateRows: `repeat(${itemsPerPage}, 1fr)`
+          }}
         >
           {pageData.map((row) => (
             <div 
               key={row.id} 
               className="print-item border-2 border-black p-2 flex flex-col justify-between"
+              style={{
+                borderWidth: highQuality ? '2.5px' : '1.5px'
+              }}
             >
               {/* Top Bismillah */}
               <div className="text-center">
@@ -52,29 +65,29 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header, scale = 1.0, 
               </div>
 
               {/* Main Content Table */}
-              <div className="mt-2">
-                <table className="w-full border-collapse border-[1.5px] border-black text-center">
+              <div className="mt-2 flex-grow flex flex-col justify-center">
+                <table className="w-full border-collapse border-[1.5px] border-black text-center" style={{ borderWidth: highQuality ? '2px' : '1.5px' }}>
                   <thead>
                     <tr className="text-[10px] font-black uppercase">
-                      <th className="border-r-[1.5px] border-black p-0.5 w-[12%]">No</th>
+                      <th className="border-r-[1.5px] border-black p-0.5 w-[12%]" style={{ borderColor: 'black' }}>No</th>
                       <th className="p-0.5">Nama Lengkap Donatur</th>
                     </tr>
                   </thead>
                   <tbody>
-                    <tr className="border-t-[1.5px] border-black">
-                      <td className="border-r-[1.5px] border-black text-4xl font-black p-1 align-middle">
+                    <tr className="border-t-[1.5px] border-black" style={{ borderColor: 'black' }}>
+                      <td className="border-r-[1.5px] border-black text-4xl font-black p-1 align-middle" style={{ borderColor: 'black' }}>
                         {row.no}
                       </td>
-                      <td className="text-2xl font-black p-2 align-middle uppercase">
+                      <td className="text-2xl font-black p-2 align-middle uppercase leading-tight">
                         {row.name}
                       </td>
                     </tr>
-                    <tr className="border-t-[1.5px] border-black">
+                    <tr className="border-t-[1.5px] border-black" style={{ borderColor: 'black' }}>
                       <td colSpan={2} className="text-[9px] font-black uppercase py-0.5 bg-slate-50">
                         Jadwal Tanggal Penyaluran & Sumbangan
                       </td>
                     </tr>
-                    <tr className="border-t-[1.5px] border-black">
+                    <tr className="border-t-[1.5px] border-black" style={{ borderColor: 'black' }}>
                       <td colSpan={2} className="p-2">
                         <div className="flex justify-center items-center gap-8">
                           <div className="text-center">
@@ -113,8 +126,8 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header, scale = 1.0, 
             </div>
           ))}
           
-          {/* Filler kartu jika data kurang dari 4 */}
-          {pageData.length < 4 && Array.from({ length: 4 - pageData.length }).map((_, i) => (
+          {/* Filler kartu jika data kurang dari itemsPerPage */}
+          {pageData.length < itemsPerPage && Array.from({ length: itemsPerPage - pageData.length }).map((_, i) => (
             <div key={`empty-${i}`} className="border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center opacity-30">
               <span className="text-sm font-black text-slate-300 uppercase italic">Slot Kosong</span>
             </div>
@@ -129,10 +142,10 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({ data, header, scale = 1.0, 
       )}
 
       {/* Info Panel Preview */}
-      <div className="no-print fixed bottom-8 right-8 bg-emerald-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black text-xs z-50 border-2 border-emerald-500 flex flex-col items-center">
-         <span className="text-[10px] text-emerald-300 uppercase tracking-widest mb-1">MODE POTRAIT AKTIF</span>
-         <span className="text-2xl uppercase tracking-tighter">{pages.length} LEMBAR A4</span>
-         <span className="text-[9px] text-emerald-400 mt-1 uppercase">4 DONATUR PER HALAMAN</span>
+      <div className="no-print fixed bottom-8 right-8 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black text-xs z-50 border-2 border-slate-700 flex flex-col items-center">
+         <span className="text-[10px] text-slate-500 uppercase tracking-widest mb-1">STATUS PRATINJAU</span>
+         <span className="text-2xl uppercase tracking-tighter text-emerald-400">{pages.length} LEMBAR</span>
+         <span className="text-[9px] text-slate-400 mt-1 uppercase">{itemsPerPage} DONATUR / HALAMAN</span>
       </div>
     </div>
   );
