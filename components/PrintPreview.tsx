@@ -8,7 +8,7 @@ interface PrintPreviewProps {
   scale?: number;
   highQuality?: boolean;
   itemsPerPage?: number;
-  margin?: number; // Safe margin in mm
+  margins?: { top: number, bottom: number, left: number, right: number };
 }
 
 const PrintPreview: React.FC<PrintPreviewProps> = ({ 
@@ -17,9 +17,8 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
   scale = 1.0, 
   highQuality = true,
   itemsPerPage = 4,
-  margin = 10
+  margins = { top: 5, bottom: 5, left: 5, right: 5 }
 }) => {
-  // Bagi data berdasarkan jumlah donatur per halaman
   const chunkData = (arr: DonationRecord[], size: number) => {
     const chunks = [];
     for (let i = 0; i < arr.length; i += size) {
@@ -44,7 +43,7 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
           className="print-page screen-page-container bg-white"
           style={{
             gridTemplateRows: `repeat(${itemsPerPage}, 1fr)`,
-            padding: `${margin}mm`, // Terapkan margin pengamanan di sini
+            padding: `${margins.top}mm ${margins.right}mm ${margins.bottom}mm ${margins.left}mm`,
             boxSizing: 'border-box'
           }}
         >
@@ -57,7 +56,6 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
                 borderColor: 'black'
               }}
             >
-              {/* Header Kartu - Bismillah & Nama Masjid */}
               <div className="text-center pt-1">
                 <p className="text-[12px] italic font-serif leading-none mb-0.5">بِسْمِ اللَّهِ الرَّحْمَنِ الرَّحِيم</p>
                 <h2 className="text-[15px] font-black uppercase mosque-title leading-tight" style={{ color: '#927331' }}>
@@ -69,7 +67,6 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
                 <h3 className="text-[11px] font-black uppercase tracking-tight leading-none">{header.subHeader}</h3>
               </div>
 
-              {/* Tabel Utama - Donatur & Jadwal */}
               <div className="flex-grow flex flex-col justify-center px-1">
                 <table className="w-full border-collapse border-[1.5px] border-black text-center" style={{ borderWidth: highQuality ? '2px' : '1.5px' }}>
                   <thead>
@@ -119,7 +116,6 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
                 </table>
               </div>
 
-              {/* Footer Kartu - Keterangan Resmi */}
               <div className="flex justify-between items-end px-1 pb-1">
                 <p className="text-[6px] font-bold uppercase text-slate-400">
                   Dokumen Resmi Panitia Ramadhan Mubarak
@@ -133,10 +129,9 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
             </div>
           ))}
           
-          {/* Filler kartu jika data kurang dari itemsPerPage agar layout tetap full */}
           {pageData.length < itemsPerPage && Array.from({ length: itemsPerPage - pageData.length }).map((_, i) => (
             <div key={`empty-${i}`} className="print-item border-2 border-dashed border-slate-200 rounded-lg flex items-center justify-center opacity-30">
-              <span className="text-sm font-black text-slate-300 uppercase italic">Slot Kosong</span>
+              <span className="text-xs font-black text-slate-300 uppercase italic">Slot Kosong</span>
             </div>
           ))}
         </div>
@@ -144,15 +139,14 @@ const PrintPreview: React.FC<PrintPreviewProps> = ({
 
       {data.length === 0 && (
         <div className="text-center py-20 text-slate-400 bg-white border-4 border-dashed rounded-3xl no-print m-10">
-          <p className="text-xl font-black uppercase tracking-widest">Data Kosong</p>
+          <p className="text-xl font-black uppercase tracking-widest">Editor Data Kosong</p>
         </div>
       )}
 
-      {/* Floating Info untuk memantau status di layar */}
       <div className="no-print fixed bottom-8 right-8 bg-slate-900 text-white px-8 py-4 rounded-2xl shadow-2xl font-black text-xs z-50 border-2 border-slate-700 flex flex-col items-center">
-         <span className="text-[10px] text-emerald-400 uppercase tracking-widest mb-1">PENGATURAN PRESISI AKTIF</span>
+         <span className="text-[10px] text-emerald-400 uppercase tracking-widest mb-1">A4 FULL MODE</span>
          <span className="text-2xl uppercase tracking-tighter text-white">{pages.length} LEMBAR</span>
-         <span className="text-[9px] text-slate-400 mt-1 uppercase">Margin Aman: {margin}mm</span>
+         <span className="text-[9px] text-slate-400 mt-1 uppercase">PRESISI {margins.top}-{margins.bottom}-{margins.left}-{margins.right}</span>
       </div>
     </div>
   );
